@@ -6,8 +6,8 @@
 ## ⏳ Backlog (대기 중인 작업)
 - [x] `config_server` stdio 전송 E2E 테스트 (실제 서브프로세스로 실행)
 - [x] MCP 타입 도구 실제 연동 테스트 (외부 MCP 서버 스텁 활용)
-- [ ] `__main__.py` CLI 엔트리포인트 정리 (`argparse` 기반 서브커맨드)
-- [ ] PyPI 배포용 `pyproject.toml` 정비 (메타데이터 완성, classifiers 등)
+- [x] `__main__.py` CLI 엔트리포인트 정리 (`argparse` 기반 서브커맨드)
+- [x] PyPI 배포용 `pyproject.toml` 정비 (메타데이터 완성, classifiers 등)
 
 ## ✅ Completed (완료된 작업)
 - [x] 초기 프로젝트 명세 및 아키텍처 설계
@@ -27,6 +27,8 @@
 - [x] `ToolNotFoundError` 추가 및 `delete_tool` 없는 ID 처리 수정
 - [x] `config_server` FastMCP API 변경 대응 (`run_async` → `run_stdio_async`)
 - [x] `test_config_server_e2e.py` — 실제 stdio MCP 프로토콜 E2E 테스트 8개 추가 (**총 50개 통과**)
+- [x] `tool_loader/__main__.py` — argparse 기반 CLI (keygen/list/add/delete/toggle/load/serve 7개 서브커맨드)
+- [x] `pyproject.toml` 정비 — classifiers, scripts, authors, urls, mcp 의존성 추가
 - [x] `_load_mcp` 버그 수정 — `"transport": "stdio"` 키 누락 및 `await client.get_tools()` 누락 수정
 - [x] `testsxit/stub_mcp_server.py` — FastMCP 기반 테스트용 스텁 서버 (add_numbers, greet 2개 도구)
 - [x] `test_mcp_integration.py` — 실제 stdio MCP 프로토콜 연동 테스트 8개 추가 (**총 58개 통과**)
