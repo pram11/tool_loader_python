@@ -1,73 +1,75 @@
 # tool-loader-python
 
-SQLite 기반 도구 메타데이터 관리 및 LangChain 에이전트용 비동기 도구 로더 라이브러리.
+An async tool loader library for managing tool metadata via SQLite and loading tools for LangChain agents.
 
-## 설치
+> 한국어 문서: [README_KR.md](README_KR.md)
+
+## Installation
 
 ```bash
 pip install -e .
 ```
 
-## 빠른 시작
+## Quick Start
 
 ```bash
-# 1. Fernet 암호화 키 생성 (최초 1회)
+# 1. Generate a Fernet encryption key (once)
 python -m tool_loader keygen
 
-# 2. 환경변수 설정
-export TOOL_LOADER_FERNET_KEY=<위에서 생성한 키>
-export TOOL_LOADER_DB_URL=sqlite+aiosqlite:///tools.db   # 기본값이므로 생략 가능
+# 2. Set environment variables
+export TOOL_LOADER_FERNET_KEY=<key from step 1>
+export TOOL_LOADER_DB_URL=sqlite+aiosqlite:///tools.db   # optional, this is the default
 
-# 3. 도구 등록 및 목록 확인
-python -m tool_loader add --name my_calc --type python --path "math:gcd" --description "GCD 계산"
+# 3. Register a tool and list it
+python -m tool_loader add --name my_calc --type python --path "math:gcd" --description "Compute GCD"
 python -m tool_loader list
 
-# 4. 도구 로드 및 결과 확인
+# 4. Load all active tools and print results
 python -m tool_loader load --allowed-modules math
 ```
 
-## 아키텍처 개요
+## Architecture Overview
 
 ```
 CryptoManager → Registry (SQLite) → UniversalLoader → LangChain Tools
                                   ↗
-                   ProcessManager (MCP 서브프로세스)
+                   ProcessManager (MCP subprocesses)
 ```
 
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| `CryptoManager` | Fernet 대칭키로 env_vars 암복호화 |
-| `Registry` | SQLAlchemy + aiosqlite 기반 도구 CRUD |
-| `ProcessManager` | MCP 서버 서브프로세스 생명주기 관리 |
-| `UniversalLoader` | MCP / Python 타입 도구를 LangChain 형식으로 로드 |
-| `config_server` | 런타임 도구 관리용 내장 FastMCP 서버 |
+| `CryptoManager` | Encrypts/decrypts `env_vars` with a Fernet symmetric key |
+| `Registry` | Tool CRUD via SQLAlchemy + aiosqlite |
+| `ProcessManager` | Lifecycle management for MCP server subprocesses |
+| `UniversalLoader` | Loads MCP / Python tools into LangChain format |
+| `config_server` | Embedded FastMCP server for runtime tool management |
 
 ---
 
-## CLI 사용법
+## CLI Usage
 
-`python -m tool_loader <subcommand>` 형식으로 실행합니다.  
-모든 서브커맨드는 `--db-url`과 `--fernet-key` 전역 옵션을 공유하며, 환경변수로 대체할 수 있습니다.
+Run subcommands via `python -m tool_loader <subcommand>`.  
+All subcommands share the global options `--db-url` and `--fernet-key`, which can be replaced by environment variables.
 
 ```
 python -m tool_loader [-h] [--db-url URL] [--fernet-key KEY] SUBCOMMAND
 ```
 
-| 서브커맨드 | 설명 | 주요 옵션 |
+| Subcommand | Description | Key Options |
 |---|---|---|
-| `keygen` | Fernet 키 생성 후 stdout 출력 | — |
-| `list` | 등록된 도구 목록 출력 | `--enabled-only` |
-| `add` | 도구 등록 | `--name`, `--type`, `--path`, `--args`, `--env`, `--policy`, `--description` |
-| `delete` | 도구 삭제 | `TOOL_ID` |
-| `toggle` | 도구 활성화/비활성화 | `TOOL_ID`, `--enable` \| `--disable` |
-| `load` | 활성 도구 전체 로드 후 결과 출력 | `--allowed-modules`, `--seed-builtins` |
-| `serve` | config MCP 서버를 stdio 전송으로 실행 | (fernet-key 필수) |
+| `keygen` | Generate and print a Fernet key | — |
+| `list` | List registered tools | `--enabled-only` |
+| `add` | Register a tool | `--name`, `--type`, `--path`, `--args`, `--env`, `--policy`, `--description` |
+| `delete` | Delete a tool | `TOOL_ID` |
+| `toggle` | Enable or disable a tool | `TOOL_ID`, `--enable` \| `--disable` |
+| `load` | Load all active tools and print results | `--allowed-modules`, `--seed-builtins` |
+| `serve` | Run the config MCP server over stdio | (fernet-key required) |
 
 ```bash
-# 키 생성
+# Generate a key
 python -m tool_loader keygen
 
-# MCP 도구 등록
+# Register an MCP tool
 python -m tool_loader add \
   --name filesystem_mcp \
   --type mcp \
@@ -75,71 +77,71 @@ python -m tool_loader add \
   --args '["-y","@modelcontextprotocol/server-filesystem","/tmp"]' \
   --policy PERSISTENT
 
-# 도구 목록 조회 (활성만)
+# List tools (active only)
 python -m tool_loader list --enabled-only
 
-# 도구 비활성화 / 활성화
+# Disable / enable a tool
 python -m tool_loader toggle 3 --disable
 python -m tool_loader toggle 3 --enable
 
-# 도구 삭제
+# Delete a tool
 python -m tool_loader delete 3
 
-# config MCP 서버 실행
+# Start the config MCP server
 python -m tool_loader serve
 ```
 
 ---
 
-## 내장 도구 (Built-in Tools)
+## Built-in Tools
 
-`tool_loader.builtin_tools` 패키지에 포함된 9개의 기본 도구입니다.  
-`seed_builtin_tools(registry)`를 호출하면 모두 자동 등록됩니다.
+Nine tools are bundled in `tool_loader.builtin_tools`.  
+Call `seed_builtin_tools(registry)` to register them all automatically.
 
-### 파일 도구 (`file_tools`)
+### File Tools (`file_tools`)
 
-| 도구 | 확인 필요 | 설명 |
+| Tool | Confirmation Required | Description |
 |---|:---:|---|
-| `search_files(pattern, directory=".")` | ❌ | 글로브 패턴으로 파일 검색 |
-| `list_directory(directory=".", show_hidden=False)` | ❌ | 디렉토리 내용 조회 (이름, 타입, 크기) |
-| `read_file(file_path)` | ❌ | 파일 텍스트 내용 읽기 |
-| `write_file(file_path, content)` | ✅ | 파일 생성 또는 덮어쓰기 |
-| `delete_file(file_path)` | ✅ | 파일 삭제 |
+| `search_files(pattern, directory=".")` | ❌ | Search files by glob pattern |
+| `list_directory(directory=".", show_hidden=False)` | ❌ | List directory contents (name, type, size) |
+| `read_file(file_path)` | ❌ | Read a file's text content |
+| `write_file(file_path, content)` | ✅ | Create or overwrite a file |
+| `delete_file(file_path)` | ✅ | Delete a file |
 
-### 쉘 도구 (`shell_tools`)
+### Shell Tools (`shell_tools`)
 
-| 도구 | 확인 필요 | 설명 |
+| Tool | Confirmation Required | Description |
 |---|:---:|---|
-| `execute_file(file_path, args="")` | ✅ | 스크립트 파일 실행 (.py, .sh, .js 등) |
-| `run_bash(command, timeout=30)` | ✅ | bash 명령어 실행 |
+| `execute_file(file_path, args="")` | ✅ | Execute a script file (.py, .sh, .js, etc.) |
+| `run_bash(command, timeout=30)` | ✅ | Run a bash command |
 
-### HTTP 도구 (`http_tools`)
+### HTTP Tools (`http_tools`)
 
-| 도구 | 확인 필요 | 설명 |
+| Tool | Confirmation Required | Description |
 |---|:---:|---|
-| `http_request(url, method="GET", headers="{}", body="", timeout=30)` | ❌ | HTTP 요청 전송 (curl 대체) |
+| `http_request(url, method="GET", headers="{}", body="", timeout=30)` | ❌ | Send an HTTP request (curl alternative) |
 
-### 시스템 도구 (`system_tools`)
+### System Tools (`system_tools`)
 
-| 도구 | 확인 필요 | 설명 |
+| Tool | Confirmation Required | Description |
 |---|:---:|---|
-| `get_system_info()` | ❌ | OS, CPU 코어 수, 디스크 사용량 반환 |
+| `get_system_info()` | ❌ | Return OS, CPU core count, and disk usage |
 
-### 사용자 확인 메커니즘
+### User Confirmation Mechanism
 
-✅ 표시된 도구는 **실행 전 사용자 확인**이 필요합니다.
+Tools marked ✅ require **explicit user confirmation** before executing.
 
 ```
-⚠️  다음 작업을 실행하려 합니다:
-  파일 삭제: /home/user/important.txt
-계속하시겠습니까? [y/N]:
+⚠️  About to perform the following action:
+  Delete file: /home/user/important.txt
+Continue? [y/N]:
 ```
 
-- `y` 입력 시에만 실행, 그 외 입력 시 취소 메시지 반환
-- LangChain 에이전트는 취소 결과를 받아 상위 흐름에서 처리 가능
-- 비대화형 환경(EOF)에서는 자동으로 취소
+- Executes only when the user types `y`; any other input cancels the operation.
+- A LangChain agent receives the cancellation result and can handle it in its higher-level flow.
+- In non-interactive environments (EOF), the operation is automatically cancelled.
 
-### 내장 도구 등록 예시
+### Seeding Built-in Tools
 
 ```python
 from tool_loader import CryptoManager, Registry
@@ -149,10 +151,10 @@ crypto = CryptoManager(key=...)
 registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
 await registry.init_db()
 
-# 미등록 도구만 자동으로 삽입 (멱등성 보장)
+# Inserts only tools not already registered (idempotent)
 inserted = await seed_builtin_tools(registry)
 
-# UniversalLoader에 모듈 허용 목록 추가
+# Add the built-in module to the allowlist
 loader = UniversalLoader(
     registry=registry,
     process_manager=process_manager,
@@ -162,35 +164,35 @@ loader = UniversalLoader(
 
 ---
 
-## 커스텀 Python 도구 추가
+## Adding a Custom Python Tool
 
 ```python
-# 1. LangChain @tool 함수 작성
+# 1. Define a LangChain @tool function
 from langchain_core.tools import tool
 
 @tool
 def my_tool(x: int) -> str:
-    """내 커스텀 도구."""
+    """My custom tool."""
     return str(x * 2)
 
-# 2. 레지스트리에 등록
+# 2. Register it in the registry
 from tool_loader.models import ToolSchema, ToolType
 
 await registry.add_tool(ToolSchema(
     name="my_tool",
     type=ToolType.PYTHON,
-    path_or_cmd="my_module:my_tool",  # "모듈:함수명" 형식
-    description="입력값을 두 배로 반환합니다.",
+    path_or_cmd="my_module:my_tool",  # "module:function" format
+    description="Returns the input value doubled.",
 ))
 
-# 3. allowed_modules에 모듈 추가
+# 3. Add the module to allowed_modules
 loader = UniversalLoader(
     ...,
     allowed_modules={"my_module"},
 )
 ```
 
-## MCP 도구 추가
+## Adding an MCP Tool
 
 ```python
 from tool_loader.models import ToolSchema, ToolType, TerminationPolicy
@@ -201,39 +203,39 @@ await registry.add_tool(ToolSchema(
     path_or_cmd="npx",
     args=["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
     termination_policy=TerminationPolicy.PERSISTENT,
-    description="파일시스템 MCP 서버",
+    description="Filesystem MCP server",
 ))
 ```
 
-## config_server (런타임 도구 관리)
+## config_server (Runtime Tool Management)
 
-내장 FastMCP 서버를 stdio 전송으로 실행하면 연결된 LLM 에이전트가 런타임에 도구를 CRUD할 수 있습니다.
+Running the embedded FastMCP server over stdio lets a connected LLM agent CRUD tools at runtime.
 
 ```bash
-# CLI로 실행 (권장)
+# Recommended: via CLI
 python -m tool_loader serve
 
-# 또는 서브패키지로 직접 실행
+# Or run the subpackage directly
 python -m tool_loader.config_server \
   --db-url sqlite+aiosqlite:///tools.db \
   --fernet-key <FERNET_KEY>
 ```
 
-제공 MCP 도구: `list_tools`, `get_tool`, `add_tool`, `toggle_tool`, `delete_tool`
+Exposed MCP tools: `list_tools`, `get_tool`, `add_tool`, `toggle_tool`, `delete_tool`
 
 ---
 
-## 예외 처리
+## Exception Handling
 
-`tool_loader.exceptions` 에서 모든 커스텀 예외를 임포트할 수 있습니다.
+All custom exceptions can be imported from `tool_loader.exceptions`.
 
-| 예외 | 발생 조건 |
+| Exception | Raised When |
 |---|---|
-| `ToolNotFoundError` | `delete_tool(id)` 호출 시 해당 ID가 존재하지 않을 때 |
-| `SystemToolError` | `is_system=True`인 도구를 수정/삭제하려 할 때 |
-| `DecryptionError` | env_vars 복호화 실패 (키 불일치 등) |
-| `ModuleNotAllowedError` | `allowed_modules` 화이트리스트에 없는 모듈 로드 시도 |
-| `ToolLoadError` | `aload_all(safe_mode=True)` 중 개별 도구 로드 실패 |
+| `ToolNotFoundError` | `delete_tool(id)` is called with a non-existent ID |
+| `SystemToolError` | Attempting to modify or delete a tool where `is_system=True` |
+| `DecryptionError` | `env_vars` decryption fails (e.g., key mismatch) |
+| `ModuleNotAllowedError` | Attempting to load a module not in the `allowed_modules` whitelist |
+| `ToolLoadError` | An individual tool fails to load during `aload_all(safe_mode=True)` |
 
 ```python
 from tool_loader.exceptions import ToolNotFoundError, SystemToolError
@@ -241,25 +243,25 @@ from tool_loader.exceptions import ToolNotFoundError, SystemToolError
 try:
     await registry.delete_tool(tool_id)
 except ToolNotFoundError:
-    print("존재하지 않는 도구입니다.")
+    print("Tool not found.")
 except SystemToolError:
-    print("시스템 도구는 삭제할 수 없습니다.")
+    print("System tools cannot be deleted.")
 ```
 
-> **주의**: v0.1 이전에는 `delete_tool`이 존재하지 않는 ID를 무시했습니다.  
-> 현재는 `ToolNotFoundError`를 발생시킵니다.
+> **Note**: Before v0.1, `delete_tool` silently ignored non-existent IDs.  
+> It now raises `ToolNotFoundError`.
 
 ---
 
-## 테스트
+## Testing
 
 ```bash
 pytest -v --asyncio-mode=auto
 ```
 
-## 환경변수
+## Environment Variables
 
-| 변수 | 기본값 | 설명 |
+| Variable | Default | Description |
 |---|---|---|
-| `TOOL_LOADER_FERNET_KEY` | (자동 생성) | Fernet 암호화 키 (base64) |
+| `TOOL_LOADER_FERNET_KEY` | (auto-generated) | Fernet encryption key (base64) |
 | `TOOL_LOADER_DB_URL` | `sqlite+aiosqlite:///tools.db` | SQLAlchemy DB URL |
