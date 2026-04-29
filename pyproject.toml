@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tool-loader-python"
+version = "0.1.0"
+description = "SQLite-backed async tool loader for LangChain agents"
+requires-python = ">=3.9"
+dependencies = [
+    "pydantic>=2.0",
+    "sqlalchemy>=2.0",
+    "aiosqlite>=0.19",
+    "cryptography>=41.0",
+    "langchain-core>=0.2",
+    "langchain-mcp-adapters>=0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tool_loader*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
