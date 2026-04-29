@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-from tool_loader.exceptions import SystemToolError
+from tool_loader.exceptions import SystemToolError, ToolNotFoundError
 from tool_loader.models import ToolSchema
 from tool_loader.security import CryptoManager
 
@@ -121,7 +121,7 @@ class Registry:
         async with self._session_factory() as session:
             row = await session.get(_ToolRow, tool_id)
             if row is None:
-                return
+                raise ToolNotFoundError(f"Tool id={tool_id} not found.")
             if row.is_system:
                 raise SystemToolError(
                     f"Cannot delete system tool '{row.name}' (id={tool_id})."

@@ -172,7 +172,7 @@ async def _run(db_url: str, fernet_key: str) -> None:
     await registry.init_db()
     try:
         mcp = build_config_server(registry)
-        await mcp.run_async(transport="stdio")
+        await mcp.run_stdio_async()
     finally:
         await registry.close()
 

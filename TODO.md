@@ -4,7 +4,7 @@
 > 모든 스프린트 항목 완료. 다음 스프린트 계획 필요.
 
 ## ⏳ Backlog (대기 중인 작업)
-- [ ] `config_server` stdio 전송 E2E 테스트 (실제 서브프로세스로 실행)
+- [x] `config_server` stdio 전송 E2E 테스트 (실제 서브프로세스로 실행)
 - [ ] MCP 타입 도구 실제 연동 테스트 (외부 MCP 서버 스텁 활용)
 - [ ] `__main__.py` CLI 엔트리포인트 정리 (`argparse` 기반 서브커맨드)
 - [ ] PyPI 배포용 `pyproject.toml` 정비 (메타데이터 완성, classifiers 등)
@@ -24,6 +24,9 @@
 - [x] `main.py` 연동 스크립트 (CryptoManager → Registry → ProcessManager → UniversalLoader 순서)
 - [x] `pyproject.toml` 패키지 메타데이터 작성
 - [x] **전체 42개 테스트 통과** (`pytest -v --asyncio-mode=auto`)
+- [x] `ToolNotFoundError` 추가 및 `delete_tool` 없는 ID 처리 수정
+- [x] `config_server` FastMCP API 변경 대응 (`run_async` → `run_stdio_async`)
+- [x] `test_config_server_e2e.py` — 실제 stdio MCP 프로토콜 E2E 테스트 8개 추가 (**총 50개 통과**)
 - [x] `builtin_tools` 패키지 구현 — 9개 내장 도구 (파일 CRUD, 파일 검색, 디렉토리 조회, HTTP, 파일/bash 실행, 시스템 정보)
   - `_confirmation.py`: 위험 도구(write/delete/execute/bash) 실행 전 stdin y/N 확인 데코레이터
   - `file_tools.py`: search_files, list_directory, read_file, write_file(✅확인), delete_file(✅확인)

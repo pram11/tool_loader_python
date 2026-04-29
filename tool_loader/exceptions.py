@@ -10,6 +10,10 @@ class EncryptionError(ToolLoaderError):
     """Raised when Fernet encryption fails."""
 
 
+class ToolNotFoundError(ToolLoaderError):
+    """Raised when a tool ID does not exist in the registry."""
+
+
 class SystemToolError(ToolLoaderError):
     """Raised when attempting to mutate a system-protected tool."""
 

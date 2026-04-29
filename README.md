@@ -151,6 +151,48 @@ await registry.add_tool(ToolSchema(
 ))
 ```
 
+## config_server (런타임 도구 관리)
+
+내장 FastMCP 서버를 stdio 전송으로 실행하면 연결된 LLM 에이전트가 런타임에 도구를 CRUD할 수 있습니다.
+
+```bash
+python -m tool_loader.config_server \
+  --db-url sqlite+aiosqlite:///tools.db \
+  --fernet-key <FERNET_KEY>
+```
+
+제공 MCP 도구: `list_tools`, `get_tool`, `add_tool`, `toggle_tool`, `delete_tool`
+
+---
+
+## 예외 처리
+
+`tool_loader.exceptions` 에서 모든 커스텀 예외를 임포트할 수 있습니다.
+
+| 예외 | 발생 조건 |
+|---|---|
+| `ToolNotFoundError` | `delete_tool(id)` 호출 시 해당 ID가 존재하지 않을 때 |
+| `SystemToolError` | `is_system=True`인 도구를 수정/삭제하려 할 때 |
+| `DecryptionError` | env_vars 복호화 실패 (키 불일치 등) |
+| `ModuleNotAllowedError` | `allowed_modules` 화이트리스트에 없는 모듈 로드 시도 |
+| `ToolLoadError` | `aload_all(safe_mode=True)` 중 개별 도구 로드 실패 |
+
+```python
+from tool_loader.exceptions import ToolNotFoundError, SystemToolError
+
+try:
+    await registry.delete_tool(tool_id)
+except ToolNotFoundError:
+    print("존재하지 않는 도구입니다.")
+except SystemToolError:
+    print("시스템 도구는 삭제할 수 없습니다.")
+```
+
+> **주의**: v0.1 이전에는 `delete_tool`이 존재하지 않는 ID를 무시했습니다.  
+> 현재는 `ToolNotFoundError`를 발생시킵니다.
+
+---
+
 ## 테스트
 
 ```bash
