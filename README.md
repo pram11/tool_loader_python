@@ -11,12 +11,19 @@ pip install -e .
 ## 빠른 시작
 
 ```bash
-# Fernet 암호화 키 생성 (최초 1회)
-python -c "from tool_loader import CryptoManager; print(CryptoManager.generate_key().decode())"
+# 1. Fernet 암호화 키 생성 (최초 1회)
+python -m tool_loader keygen
 
-# 환경변수 설정 후 실행
+# 2. 환경변수 설정
 export TOOL_LOADER_FERNET_KEY=<위에서 생성한 키>
-python main.py
+export TOOL_LOADER_DB_URL=sqlite+aiosqlite:///tools.db   # 기본값이므로 생략 가능
+
+# 3. 도구 등록 및 목록 확인
+python -m tool_loader add --name my_calc --type python --path "math:gcd" --description "GCD 계산"
+python -m tool_loader list
+
+# 4. 도구 로드 및 결과 확인
+python -m tool_loader load --allowed-modules math
 ```
 
 ## 아키텍처 개요
@@ -34,6 +41,53 @@ CryptoManager → Registry (SQLite) → UniversalLoader → LangChain Tools
 | `ProcessManager` | MCP 서버 서브프로세스 생명주기 관리 |
 | `UniversalLoader` | MCP / Python 타입 도구를 LangChain 형식으로 로드 |
 | `config_server` | 런타임 도구 관리용 내장 FastMCP 서버 |
+
+---
+
+## CLI 사용법
+
+`python -m tool_loader <subcommand>` 형식으로 실행합니다.  
+모든 서브커맨드는 `--db-url`과 `--fernet-key` 전역 옵션을 공유하며, 환경변수로 대체할 수 있습니다.
+
+```
+python -m tool_loader [-h] [--db-url URL] [--fernet-key KEY] SUBCOMMAND
+```
+
+| 서브커맨드 | 설명 | 주요 옵션 |
+|---|---|---|
+| `keygen` | Fernet 키 생성 후 stdout 출력 | — |
+| `list` | 등록된 도구 목록 출력 | `--enabled-only` |
+| `add` | 도구 등록 | `--name`, `--type`, `--path`, `--args`, `--env`, `--policy`, `--description` |
+| `delete` | 도구 삭제 | `TOOL_ID` |
+| `toggle` | 도구 활성화/비활성화 | `TOOL_ID`, `--enable` \| `--disable` |
+| `load` | 활성 도구 전체 로드 후 결과 출력 | `--allowed-modules`, `--seed-builtins` |
+| `serve` | config MCP 서버를 stdio 전송으로 실행 | (fernet-key 필수) |
+
+```bash
+# 키 생성
+python -m tool_loader keygen
+
+# MCP 도구 등록
+python -m tool_loader add \
+  --name filesystem_mcp \
+  --type mcp \
+  --path npx \
+  --args '["-y","@modelcontextprotocol/server-filesystem","/tmp"]' \
+  --policy PERSISTENT
+
+# 도구 목록 조회 (활성만)
+python -m tool_loader list --enabled-only
+
+# 도구 비활성화 / 활성화
+python -m tool_loader toggle 3 --disable
+python -m tool_loader toggle 3 --enable
+
+# 도구 삭제
+python -m tool_loader delete 3
+
+# config MCP 서버 실행
+python -m tool_loader serve
+```
 
 ---
 
@@ -156,6 +210,10 @@ await registry.add_tool(ToolSchema(
 내장 FastMCP 서버를 stdio 전송으로 실행하면 연결된 LLM 에이전트가 런타임에 도구를 CRUD할 수 있습니다.
 
 ```bash
+# CLI로 실행 (권장)
+python -m tool_loader serve
+
+# 또는 서브패키지로 직접 실행
 python -m tool_loader.config_server \
   --db-url sqlite+aiosqlite:///tools.db \
   --fernet-key <FERNET_KEY>
