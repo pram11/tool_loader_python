@@ -94,13 +94,14 @@ class UniversalLoader:
 
         server_config: Dict[str, Any] = {
             tool.name: {
+                "transport": "stdio",
                 "command": tool.path_or_cmd,
                 "args": tool.args,
                 "env": tool.env_vars or None,
             }
         }
-        async with MultiServerMCPClient(server_config) as client:
-            lc_tools = client.get_tools()
+        client = MultiServerMCPClient(server_config)
+        lc_tools = await client.get_tools()
 
         logger.info("Loaded %d MCP tool(s) from '%s'.", len(lc_tools), tool.name)
         return lc_tools
