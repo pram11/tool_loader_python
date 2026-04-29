@@ -27,11 +27,11 @@ _INTERPRETER_MAP: Dict[str, str] = {
 
 def _describe_execute(file_path: str, args: str = "") -> str:
     abs_path = os.path.abspath(file_path)
-    return f"파일 실행: {abs_path}" + (f"  인자: {args}" if args else "")
+    return f"Execute file: {abs_path}" + (f"  args: {args}" if args else "")
 
 
 def _describe_bash(command: str, timeout: int = 30) -> str:
-    return f"bash 명령 실행: {command}"
+    return f"Run bash command: {command}"
 
 
 @tool
@@ -52,12 +52,12 @@ def execute_file(file_path: str, args: str = "") -> str:
     try:
         path = os.path.abspath(file_path)
         if not os.path.isfile(path):
-            return f"오류: '{file_path}' 파일이 존재하지 않습니다."
+            return f"Error: '{file_path}' does not exist."
 
         _, ext = os.path.splitext(path)
         interpreter = _INTERPRETER_MAP.get(ext.lower())
         if not interpreter:
-            return f"오류: '{ext}' 확장자는 지원되지 않습니다. 지원 목록: {list(_INTERPRETER_MAP)}"
+            return f"Error: '{ext}' is not a supported extension. Supported: {list(_INTERPRETER_MAP)}"
 
         cmd = [interpreter, path] + (shlex.split(args) if args.strip() else [])
         proc = subprocess.run(
@@ -72,9 +72,9 @@ def execute_file(file_path: str, args: str = "") -> str:
             "stderr": proc.stderr,
         }, ensure_ascii=False)
     except subprocess.TimeoutExpired:
-        return "오류: 실행 시간이 초과되었습니다 (60초)."
+        return "Error: execution timed out (60s)."
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
 
 
 @tool
@@ -104,6 +104,6 @@ def run_bash(command: str, timeout: int = 30) -> str:
             "stderr": proc.stderr,
         }, ensure_ascii=False)
     except subprocess.TimeoutExpired:
-        return f"오류: 실행 시간이 초과되었습니다 ({timeout}초)."
+        return f"Error: execution timed out ({timeout}s)."
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"

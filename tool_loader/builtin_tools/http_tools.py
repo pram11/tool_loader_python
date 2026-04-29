@@ -31,7 +31,7 @@ def http_request(
     try:
         parsed_headers: Dict[str, str] = json.loads(headers) if headers.strip() else {}
     except json.JSONDecodeError as exc:
-        return f"오류: headers가 유효한 JSON이 아닙니다 — {exc}"
+        return f"Error: 'headers' is not valid JSON — {exc}"
 
     method = method.upper()
     body_bytes = body.encode("utf-8") if body else None
@@ -56,8 +56,8 @@ def http_request(
             "error": str(exc),
         }, ensure_ascii=False)
     except urllib.error.URLError as exc:
-        return f"오류: 요청 실패 — {exc.reason}"
+        return f"Error: request failed — {exc.reason}"
     except TimeoutError:
-        return f"오류: 요청 시간이 초과되었습니다 ({timeout}초)."
+        return f"Error: request timed out ({timeout}s)."
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"

@@ -24,11 +24,11 @@ def search_files(pattern: str, directory: str = ".") -> str:
     try:
         root = os.path.abspath(directory)
         if not os.path.isdir(root):
-            return f"오류: '{directory}'는 디렉토리가 아닙니다."
+            return f"Error: '{directory}' is not a directory."
         matches = glob.glob(pattern, root_dir=root, recursive=True)
         return json.dumps(sorted(matches), ensure_ascii=False)
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
 
 
 @tool
@@ -45,7 +45,7 @@ def list_directory(directory: str = ".", show_hidden: bool = False) -> str:
     try:
         root = os.path.abspath(directory)
         if not os.path.isdir(root):
-            return f"오류: '{directory}'는 디렉토리가 아닙니다."
+            return f"Error: '{directory}' is not a directory."
         entries: List[dict] = []
         with os.scandir(root) as it:
             for entry in sorted(it, key=lambda e: e.name):
@@ -59,7 +59,7 @@ def list_directory(directory: str = ".", show_hidden: bool = False) -> str:
                 })
         return json.dumps(entries, ensure_ascii=False)
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
 
 
 @tool
@@ -75,17 +75,17 @@ def read_file(file_path: str) -> str:
     try:
         path = os.path.abspath(file_path)
         if not os.path.isfile(path):
-            return f"오류: '{file_path}' 파일이 존재하지 않습니다."
+            return f"Error: '{file_path}' does not exist."
         with open(path, encoding="utf-8", errors="replace") as fh:
             return fh.read()
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
 
 
 def _describe_write(file_path: str, content: str) -> str:
     preview = content[:80].replace("\n", "\\n")
     ellipsis = "..." if len(content) > 80 else ""
-    return f"파일 쓰기: {os.path.abspath(file_path)}\n  내용 미리보기: {preview}{ellipsis}"
+    return f"Write file: {os.path.abspath(file_path)}\n  Content preview: {preview}{ellipsis}"
 
 
 @tool
@@ -107,13 +107,13 @@ def write_file(file_path: str, content: str) -> str:
         os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         with open(path, "w", encoding="utf-8") as fh:
             fh.write(content)
-        return f"'{path}' 파일에 {len(content)} 자를 저장했습니다."
+        return f"Wrote {len(content)} characters to '{path}'."
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
 
 
 def _describe_delete(file_path: str) -> str:
-    return f"파일 삭제: {os.path.abspath(file_path)}"
+    return f"Delete file: {os.path.abspath(file_path)}"
 
 
 @tool
@@ -132,10 +132,10 @@ def delete_file(file_path: str) -> str:
     try:
         path = os.path.abspath(file_path)
         if os.path.isdir(path):
-            return f"오류: '{file_path}'는 디렉토리입니다. 파일 경로를 지정하세요."
+            return f"Error: '{file_path}' is a directory. Provide a file path."
         if not os.path.exists(path):
-            return f"오류: '{file_path}' 파일이 존재하지 않습니다."
+            return f"Error: '{file_path}' does not exist."
         os.remove(path)
-        return f"'{path}' 파일을 삭제했습니다."
+        return f"Deleted '{path}'."
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"

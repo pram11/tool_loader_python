@@ -18,13 +18,13 @@ def require_confirmation(describe: Callable[..., str]) -> Callable:
         @wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             action = describe(*args, **kwargs)
-            print(f"\n⚠️  다음 작업을 실행하려 합니다:\n  {action}")
+            print(f"\n⚠️  About to perform the following action:\n  {action}")
             try:
-                answer = input("계속하시겠습니까? [y/N]: ").strip().lower()
+                answer = input("Continue? [y/N]: ").strip().lower()
             except EOFError:
                 answer = ""
             if answer != "y":
-                return "사용자가 실행을 취소했습니다."
+                return "Action cancelled by user."
             return fn(*args, **kwargs)
         return wrapper
     return decorator

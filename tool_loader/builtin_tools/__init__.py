@@ -23,7 +23,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.file_tools:search_files",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="글로브 패턴으로 파일을 검색합니다.",
+        description="Search for files matching a glob pattern.",
     ),
     ToolSchema(
         name="list_directory",
@@ -31,7 +31,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.file_tools:list_directory",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="지정된 디렉토리의 내용을 조회합니다.",
+        description="List the contents of a directory.",
     ),
     ToolSchema(
         name="read_file",
@@ -39,7 +39,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.file_tools:read_file",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="파일의 텍스트 내용을 읽어 반환합니다.",
+        description="Read and return the text content of a file.",
     ),
     ToolSchema(
         name="write_file",
@@ -47,7 +47,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.file_tools:write_file",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="[확인 필요] 파일을 생성하거나 덮어씁니다.",
+        description="[Confirmation required] Create or overwrite a file.",
     ),
     ToolSchema(
         name="delete_file",
@@ -55,7 +55,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.file_tools:delete_file",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="[확인 필요] 파일을 삭제합니다.",
+        description="[Confirmation required] Delete a file.",
     ),
     ToolSchema(
         name="http_request",
@@ -63,7 +63,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.http_tools:http_request",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="HTTP 요청을 전송합니다 (curl 대체).",
+        description="Send an HTTP request (curl equivalent).",
     ),
     ToolSchema(
         name="execute_file",
@@ -71,7 +71,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.shell_tools:execute_file",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="[확인 필요] 스크립트 파일을 실행합니다.",
+        description="[Confirmation required] Execute a script file.",
     ),
     ToolSchema(
         name="run_bash",
@@ -79,7 +79,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.shell_tools:run_bash",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="[확인 필요] bash 명령어를 실행합니다.",
+        description="[Confirmation required] Run a bash command.",
     ),
     ToolSchema(
         name="get_system_info",
@@ -87,7 +87,7 @@ BUILTIN_TOOLS: list[ToolSchema] = [
         path_or_cmd="tool_loader.builtin_tools.system_tools:get_system_info",
         is_system=True,
         termination_policy=TerminationPolicy.ON_DEMAND,
-        description="운영체제, CPU, 디스크 정보를 반환합니다.",
+        description="Return OS, CPU, and disk information.",
     ),
 ]
 

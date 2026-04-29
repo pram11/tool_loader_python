@@ -42,4 +42,4 @@ def get_system_info() -> str:
         }
         return json.dumps(info, ensure_ascii=False)
     except Exception as exc:
-        return f"오류: {exc}"
+        return f"Error: {exc}"
