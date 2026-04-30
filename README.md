@@ -6,7 +6,23 @@ An async tool loader library for managing tool metadata via SQLite and loading t
 
 ## Installation
 
+Install directly from GitHub:
+
 ```bash
+pip install git+https://github.com/pram11/tool_loader_python.git
+```
+
+To pin a specific version or tag:
+
+```bash
+pip install git+https://github.com/pram11/tool_loader_python.git@v0.1.0
+```
+
+For local development:
+
+```bash
+git clone https://github.com/pram11/tool_loader_python.git
+cd tool_loader_python
 pip install -e .
 ```
 

@@ -4,7 +4,23 @@ SQLite 기반 도구 메타데이터 관리 및 LangChain 에이전트용 비동
 
 ## 설치
 
+GitHub에서 직접 설치:
+
 ```bash
+pip install git+https://github.com/pram11/tool_loader_python.git
+```
+
+특정 버전(태그) 고정 설치:
+
+```bash
+pip install git+https://github.com/pram11/tool_loader_python.git@v0.1.0
+```
+
+로컬 개발 환경:
+
+```bash
+git clone https://github.com/pram11/tool_loader_python.git
+cd tool_loader_python
 pip install -e .
 ```
 
