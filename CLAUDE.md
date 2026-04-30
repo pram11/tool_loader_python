@@ -22,7 +22,7 @@
 - `tool_loader/models/`: Pydantic 기반 도구 데이터 스키마
 - `tool_loader/security/`: 대칭키(Fernet) 기반 환경변수 암복호화
 - `tool_loader/config_server/`: 자체 관리용 내장 MCP 서버
-- `testsxit/`: 비동기 모의(Mock) 테스트 및 DB 통합 테스트
+- `tests/`: 비동기 모의(Mock) 테스트 및 DB 통합 테스트
 
 ## 🎨 Code Style & Conventions
 - **Async-First**: DB 조회, 서브프로세스 관리 등 모든 I/O 작업은 반드시 `asyncio` 기반으로 작성한다.

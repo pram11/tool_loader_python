@@ -30,7 +30,7 @@
 - [x] `tool_loader/__main__.py` — argparse 기반 CLI (keygen/list/add/delete/toggle/load/serve 7개 서브커맨드)
 - [x] `pyproject.toml` 정비 — classifiers, scripts, authors, urls, mcp 의존성 추가
 - [x] `_load_mcp` 버그 수정 — `"transport": "stdio"` 키 누락 및 `await client.get_tools()` 누락 수정
-- [x] `testsxit/stub_mcp_server.py` — FastMCP 기반 테스트용 스텁 서버 (add_numbers, greet 2개 도구)
+- [x] `tests/stub_mcp_server.py` — FastMCP 기반 테스트용 스텁 서버 (add_numbers, greet 2개 도구)
 - [x] `test_mcp_integration.py` — 실제 stdio MCP 프로토콜 연동 테스트 8개 추가 (**총 58개 통과**)
 - [x] `builtin_tools` 패키지 구현 — 9개 내장 도구 (파일 CRUD, 파일 검색, 디렉토리 조회, HTTP, 파일/bash 실행, 시스템 정보)
   - `_confirmation.py`: 위험 도구(write/delete/execute/bash) 실행 전 stdin y/N 확인 데코레이터
@@ -41,6 +41,7 @@
   - `seed_builtin_tools(registry)`: 멱등성 보장 자동 등록 헬퍼
 - [x] `main.py` 업데이트 — BUILTIN_MODULE whitelist 추가, seed_builtin_tools 호출
 - [x] `README.md` 작성 — 내장 도구 목록, 확인 메커니즘, 사용법 포함
+- [x] 프로젝트 구조 정리 — `src/` 빈 외부 파일 삭제, `init.sh`/`setup_langchain.sh`/`temp.md` 삭제, `testsxit/` → `tests/` 이름 변경
 
 ## 📝 Lab Notes & Learnings (기록 및 메모)
 - *2026-04-30: SQLite 비동기 처리를 위해 `aiosqlite` 드라이버를 SQLAlchemy와 결합.*
