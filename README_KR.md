@@ -158,52 +158,90 @@ python -m tool_loader serve
 ### 내장 도구 등록 예시
 
 ```python
-from tool_loader import CryptoManager, Registry
+import asyncio
+import os
+from tool_loader import CryptoManager, ProcessManager, Registry, UniversalLoader
 from tool_loader.builtin_tools import BUILTIN_MODULE, seed_builtin_tools
 
-crypto = CryptoManager(key=...)
-registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
-await registry.init_db()
+async def main():
+    fernet_key = os.environ.get("TOOL_LOADER_FERNET_KEY")
+    key = fernet_key.encode() if fernet_key else CryptoManager.generate_key()
+    crypto = CryptoManager(key=key)
+    registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
+    await registry.init_db()
 
-# 미등록 도구만 자동으로 삽입 (멱등성 보장)
-inserted = await seed_builtin_tools(registry)
+    # 미등록 도구만 자동으로 삽입 (멱등성 보장)
+    inserted = await seed_builtin_tools(registry)
+    print(f"내장 도구 {inserted}개 등록 완료.")
 
-# UniversalLoader에 모듈 허용 목록 추가
-loader = UniversalLoader(
-    registry=registry,
-    process_manager=process_manager,
-    allowed_modules={BUILTIN_MODULE},
-)
+    process_manager = ProcessManager()
+    loader = UniversalLoader(
+        registry=registry,
+        process_manager=process_manager,
+        allowed_modules={BUILTIN_MODULE},
+    )
+
+    result = await loader.aload_all()
+    print(f"도구 {len(result.tools)}개 로드 완료.")
+
+    await process_manager.close_all()
+    await registry.close()
+
+asyncio.run(main())
 ```
 
 ---
 
 ## 커스텀 Python 도구 추가
 
+도구 함수는 import 가능한 모듈 파일에 정의되어야 합니다. 먼저 `my_module.py`를 작성합니다:
+
 ```python
-# 1. LangChain @tool 함수 작성
+# my_module.py  ← Python 경로상에 위치시켜야 합니다
 from langchain_core.tools import tool
 
 @tool
 def my_tool(x: int) -> str:
     """내 커스텀 도구."""
     return str(x * 2)
+```
 
-# 2. 레지스트리에 등록
+이후 등록 및 로드합니다:
+
+```python
+import asyncio
+import os
+from tool_loader import CryptoManager, ProcessManager, Registry, UniversalLoader
 from tool_loader.models import ToolSchema, ToolType
 
-await registry.add_tool(ToolSchema(
-    name="my_tool",
-    type=ToolType.PYTHON,
-    path_or_cmd="my_module:my_tool",  # "모듈:함수명" 형식
-    description="입력값을 두 배로 반환합니다.",
-))
+async def main():
+    fernet_key = os.environ.get("TOOL_LOADER_FERNET_KEY")
+    key = fernet_key.encode() if fernet_key else CryptoManager.generate_key()
+    crypto = CryptoManager(key=key)
+    registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
+    await registry.init_db()
 
-# 3. allowed_modules에 모듈 추가
-loader = UniversalLoader(
-    ...,
-    allowed_modules={"my_module"},
-)
+    await registry.add_tool(ToolSchema(
+        name="my_tool",
+        type=ToolType.PYTHON,
+        path_or_cmd="my_module:my_tool",   # "모듈:callable" 형식
+        description="입력값을 두 배로 반환합니다.",
+    ))
+
+    process_manager = ProcessManager()
+    loader = UniversalLoader(
+        registry=registry,
+        process_manager=process_manager,
+        allowed_modules={"my_module"},
+    )
+
+    result = await loader.aload_all()
+    print(f"도구 {len(result.tools)}개 로드 완료.")
+
+    await process_manager.close_all()
+    await registry.close()
+
+asyncio.run(main())
 ```
 
 ## MCP 도구 추가

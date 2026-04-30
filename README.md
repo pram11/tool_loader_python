@@ -160,52 +160,90 @@ Continue? [y/N]:
 ### Seeding Built-in Tools
 
 ```python
-from tool_loader import CryptoManager, Registry
+import asyncio
+import os
+from tool_loader import CryptoManager, ProcessManager, Registry, UniversalLoader
 from tool_loader.builtin_tools import BUILTIN_MODULE, seed_builtin_tools
 
-crypto = CryptoManager(key=...)
-registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
-await registry.init_db()
+async def main():
+    fernet_key = os.environ.get("TOOL_LOADER_FERNET_KEY")
+    key = fernet_key.encode() if fernet_key else CryptoManager.generate_key()
+    crypto = CryptoManager(key=key)
+    registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
+    await registry.init_db()
 
-# Inserts only tools not already registered (idempotent)
-inserted = await seed_builtin_tools(registry)
+    # Inserts only tools not already registered (idempotent)
+    inserted = await seed_builtin_tools(registry)
+    print(f"Seeded {inserted} built-in tool(s).")
 
-# Add the built-in module to the allowlist
-loader = UniversalLoader(
-    registry=registry,
-    process_manager=process_manager,
-    allowed_modules={BUILTIN_MODULE},
-)
+    process_manager = ProcessManager()
+    loader = UniversalLoader(
+        registry=registry,
+        process_manager=process_manager,
+        allowed_modules={BUILTIN_MODULE},
+    )
+
+    result = await loader.aload_all()
+    print(f"Loaded {len(result.tools)} tool(s).")
+
+    await process_manager.close_all()
+    await registry.close()
+
+asyncio.run(main())
 ```
 
 ---
 
 ## Adding a Custom Python Tool
 
+The tool callable must live in an importable module file. Create `my_module.py` first:
+
 ```python
-# 1. Define a LangChain @tool function
+# my_module.py  ← place this somewhere on your Python path
 from langchain_core.tools import tool
 
 @tool
 def my_tool(x: int) -> str:
     """My custom tool."""
     return str(x * 2)
+```
 
-# 2. Register it in the registry
+Then register and load it:
+
+```python
+import asyncio
+import os
+from tool_loader import CryptoManager, ProcessManager, Registry, UniversalLoader
 from tool_loader.models import ToolSchema, ToolType
 
-await registry.add_tool(ToolSchema(
-    name="my_tool",
-    type=ToolType.PYTHON,
-    path_or_cmd="my_module:my_tool",  # "module:function" format
-    description="Returns the input value doubled.",
-))
+async def main():
+    fernet_key = os.environ.get("TOOL_LOADER_FERNET_KEY")
+    key = fernet_key.encode() if fernet_key else CryptoManager.generate_key()
+    crypto = CryptoManager(key=key)
+    registry = Registry(db_url="sqlite+aiosqlite:///tools.db", crypto=crypto)
+    await registry.init_db()
 
-# 3. Add the module to allowed_modules
-loader = UniversalLoader(
-    ...,
-    allowed_modules={"my_module"},
-)
+    await registry.add_tool(ToolSchema(
+        name="my_tool",
+        type=ToolType.PYTHON,
+        path_or_cmd="my_module:my_tool",   # "module:callable" format
+        description="Returns the input value doubled.",
+    ))
+
+    process_manager = ProcessManager()
+    loader = UniversalLoader(
+        registry=registry,
+        process_manager=process_manager,
+        allowed_modules={"my_module"},
+    )
+
+    result = await loader.aload_all()
+    print(f"Loaded {len(result.tools)} tool(s).")
+
+    await process_manager.close_all()
+    await registry.close()
+
+asyncio.run(main())
 ```
 
 ## Adding an MCP Tool
